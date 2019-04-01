@@ -122,5 +122,5 @@ journal message was added.
 
 You'll be able to view a chronological report of ecommerce related entries whenever you want,
 or technical details on how you fixed _'issue-M7RVV8XY'_, 
-or hopefully find out why three years the developer who's mess you've inherited decided to 
+or hopefully find out three years later why the developer who's mess you've inherited decided to 
 do that weird thing that's got you scratching your head!
