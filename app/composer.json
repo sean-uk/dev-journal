@@ -24,7 +24,8 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "App\\Tests\\": "tests/"
+            "App\\Tests\\": "tests/",
+            "App\\Behat\\": "features/bootstrap"
         }
     },
     "replace": {
@@ -57,6 +58,7 @@
         }
     },
     "require-dev": {
-        "behat/behat": "^3.5"
+        "behat/behat": "^3.5",
+        "symfony/test-pack": "^1.0"
     }
 }
