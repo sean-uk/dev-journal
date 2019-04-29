@@ -56,7 +56,7 @@ and instead to represent that relationship in a separate class like this:
 One day, years later, someone's performance tuning your code and wants to revert back to the old way 
 because it'll be faster or whatever.
 
-_You or they need to be able to include detailed notes on why you made your design decision!_
+_You or they need to be able to look up notes on why you made your design decision in the first place!_
 
 Sure, the `ItemInCart` class is a good place for that, _but only if you know to look there in the first place_,
 which won't always be the case.
