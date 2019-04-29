@@ -1,0 +1,22 @@
+version: '2.0'
+services:
+    php_cli:
+        image: php:7.2-cli-alpine
+        volumes:
+          - '../app:/app'
+        working_dir: '/app'
+        user: ${LOCAL_USER}
+        env_file:
+            - .env
+        depends_on:
+          - composer_install
+        command: php src/test.php
+    composer_install:
+        image: 'composer:latest'
+        volumes:
+          - '../app:/app'
+        working_dir: '/app'
+        user: ${LOCAL_USER}
+        env_file:
+            - .env
+        command: composer install
