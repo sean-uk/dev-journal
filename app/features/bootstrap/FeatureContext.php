@@ -1,5 +1,7 @@
 <?php
 
+namespace App\Behat;
+
 require_once __DIR__ .'/../../vendor/autoload.php';
 
 use Behat\Behat\Context\Context;

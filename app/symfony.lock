@@ -14,6 +14,9 @@
     "facebook/webdriver": {
         "version": "1.6.0"
     },
+    "league/flysystem": {
+        "version": "1.0.51"
+    },
     "psr/cache": {
         "version": "1.0.1"
     },
