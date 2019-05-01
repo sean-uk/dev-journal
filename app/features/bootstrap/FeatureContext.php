@@ -10,6 +10,10 @@ use Behat\Gherkin\Node\TableNode;
 use Behat\Behat\Tester\Exception\PendingException;
 use App\Behat\Service\Time;
 use App\Kernel;
+use League\Flysystem\Filesystem;
+use League\Flysystem\FilesystemInterface;
+use League\Flysystem\Memory\MemoryAdapter;
+use App\Annotation\JournalAnnotation;
 
 /**
  * Defines application features from the specific context.
@@ -22,6 +26,9 @@ class FeatureContext implements Context
 
     /** @var Time */
     private $time;
+
+    /** @var FilesystemInterface */
+    private $filesystem;
 
     /**
      * Initializes context.
@@ -39,6 +46,9 @@ class FeatureContext implements Context
         // replace the DI container's time service with a riggable mock
         $this->time = new Time();
         $container->set('time', $this->time);
+
+        // setup the mock filesystem
+        $this->filesystem = $this->bootstrapMemoryFilesystem();
     }
 
     /**
@@ -55,15 +65,26 @@ class FeatureContext implements Context
      */
     public function thereIsAFileCalled($path)
     {
-        throw new PendingException();
+        // just create an empty file
+        $this->filesystem->put($path, '');
     }
 
     /**
-     * @Given the file :path has a journal annotation saying:
+     * @Given the file :path has a php journal annotation saying:
      */
-    public function theFileHasAJournalAnnotationSaying($path, PyStringNode $annotationContent)
+    public function theFileHasAPhpJournalAnnotationSaying($path, PyStringNode $annotationContent)
     {
-        throw new PendingException();
+        // formulate the content into an actual php annotation
+        $annotationClass = JournalAnnotation::class;
+        $content = <<<EOT
+/**
+ * $annotationClass(
+ *     message = "$annotationContent"
+ * )
+ */
+EOT;
+        // just replace the file content
+        $this->filesystem->put($path, $content);
     }
 
     /**
@@ -95,5 +116,18 @@ class FeatureContext implements Context
         $kernel = new Kernel('test', false);
         $kernel->boot();
         return $kernel;
+    }
+
+    /**
+     * This creates a new in-memory mock filesystem
+     *
+     * @see https://flysystem.thephpleague.com/docs/adapter/memory/
+     * @return FilesystemInterface
+     */
+    private function bootstrapMemoryFilesystem() : FilesystemInterface
+    {
+        $adapter = new MemoryAdapter();
+        $filesystem = $this->filesystem = new Filesystem($adapter);
+        return $filesystem;
     }
 }
