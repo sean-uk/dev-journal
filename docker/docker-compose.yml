@@ -11,6 +11,17 @@ services:
         depends_on:
           - composer_install
         command: php src/test.php
+    symfony_phpunit:
+        build:
+            context: .
+            dockerfile: symfony-phpunit/Dockerfile
+        volumes:
+            - '../app:/app'
+        working_dir: '/app'
+        user: ${LOCAL_USER}
+        env_file:
+            - .env
+        command: ./bin/phpunit
     composer_install:
         image: 'composer:latest'
         volumes:
