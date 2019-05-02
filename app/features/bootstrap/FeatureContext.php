@@ -14,6 +14,9 @@ use League\Flysystem\Filesystem;
 use League\Flysystem\FilesystemInterface;
 use League\Flysystem\Memory\MemoryAdapter;
 use App\Annotation\JournalAnnotation;
+use Symfony\Bundle\FrameworkBundle\Console\Application;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Tester\CommandTester;
 
 /**
  * Defines application features from the specific context.
@@ -29,6 +32,9 @@ class FeatureContext implements Context
 
     /** @var FilesystemInterface */
     private $filesystem;
+
+    /** @var string|null $last_command_output */
+    private $last_command_output;
 
     /**
      * Initializes context.
@@ -92,7 +98,7 @@ EOT;
      */
     public function iRunTheJournalAnnotationCompileCommand($path)
     {
-        throw new PendingException();
+        $this->last_command_output = $this->runAnnotationCompileCommand($path);
     }
 
     /**
@@ -101,6 +107,27 @@ EOT;
     public function thereShouldBeAnAnnotationCompiledFromAtSaying($path, $dateTimeString, PyStringNode $annotationContent)
     {
         throw new PendingException();
+    }
+
+    /**
+     * @see https://symfony.com/doc/current/console.html#testing-commands
+     */
+    private function runAnnotationCompileCommand(string $path) : string
+    {
+        // set up the application so the command can be pulled from it
+        $application = new Application($this->kernel);
+
+        // use a command tester to execute the command
+        /** @var Command $command */
+        $command = $application->find('app:journal:compile');
+        $commandTester = new CommandTester($command);
+        $commandTester->execute([
+            'command' => $command->getName(),
+            'path' => $path
+        ]);
+
+        // return the command output for later assertations
+        return $commandTester->getDisplay();
     }
 
     /**
