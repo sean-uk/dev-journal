@@ -70,10 +70,10 @@ some in methods, etc.
 ## Proposed Solution
 
 I would like a solution to be an unobtrusive as possible. This means avoiding the developer having 
-to go out of their way to create a new journal file, or anything like that.
+to go out of their way to create a new journal file, switch to another app, or anything like that.
 
-I think the best solution is to use annotations, 
-since metadata parsing via annotations is already mature in various languages,
+I think the best solution is to use annotations / PHPDoc comments, 
+since metadata parsing of this kind is already mature in various languages,
 and keeps the documentation inline with the code, where it's more likely to be actually read and maintained.
 **Some CLI command** could be run to extract those annotations into indexed files,
 (in some **format to be decided later**).
