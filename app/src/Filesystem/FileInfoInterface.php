@@ -11,9 +11,9 @@ namespace App\Filesystem;
 interface FileInfoInterface
 {
     /**
-     * get the file's extension, if it has one
+     * get the file's path
      *
-     * @return string|null
+     * @return string
      */
-    public function extension();
+    public function path() : string;
 }

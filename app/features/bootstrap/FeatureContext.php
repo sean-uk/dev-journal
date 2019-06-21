@@ -4,6 +4,8 @@ namespace App\Behat;
 
 require_once __DIR__ .'/../../vendor/autoload.php';
 
+use App\Entity\JournalEntry;
+use App\Repository\AnnotationRepositoryInterface;
 use Behat\Behat\Context\Context;
 use Behat\Gherkin\Node\PyStringNode;
 use Behat\Gherkin\Node\TableNode;
@@ -13,7 +15,7 @@ use App\Kernel;
 use League\Flysystem\Filesystem;
 use League\Flysystem\FilesystemInterface;
 use League\Flysystem\Memory\MemoryAdapter;
-use App\Annotation\JournalAnnotation;
+use PHPUnit\Framework\Assert;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Tester\CommandTester;
@@ -36,6 +38,9 @@ class FeatureContext implements Context
     /** @var string|null $last_command_output */
     private $last_command_output;
 
+    /** @var AnnotationRepositoryInterface $annotation_repository */
+    private $annotation_repository;
+
     /**
      * Initializes context.
      *
@@ -55,6 +60,9 @@ class FeatureContext implements Context
 
         // setup the mock filesystem
         $this->filesystem = $this->bootstrapMemoryFilesystem();
+
+        // set up the mock annotation repository
+        $this->annotation_repository =
     }
 
     /**
@@ -80,8 +88,8 @@ class FeatureContext implements Context
      */
     public function theFileHasAPhpJournalAnnotationSaying($path, PyStringNode $annotationContent)
     {
-        // formulate the content into an actual php annotation
-        $annotationClass = JournalAnnotation::class;
+        // formulate the content into an actual journal entry annotation
+        $annotationClass = JournalEntry::class;
         $content = <<<EOT
 /**
  * $annotationClass(
@@ -106,7 +114,11 @@ EOT;
      */
     public function thereShouldBeAnAnnotationCompiledFromAtSaying($path, $dateTimeString, PyStringNode $annotationContent)
     {
-        throw new PendingException();
+        $annotations = $this->annotation_repository->find($path, $dateTimeString);
+        Assert::assertCount(1, $annotations);
+
+        $anotation = reset($annotations);
+        Assert::assertEquals($annotationContent, $annotation->getContent());
     }
 
     /**
