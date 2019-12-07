@@ -4,14 +4,12 @@ namespace App\Behat;
 
 require_once __DIR__ .'/../../vendor/autoload.php';
 
+use App\Behat\Service\Time;
 use App\Entity\JournalEntry;
+use App\Kernel;
 use App\Repository\AnnotationRepositoryInterface;
 use Behat\Behat\Context\Context;
 use Behat\Gherkin\Node\PyStringNode;
-use Behat\Gherkin\Node\TableNode;
-use Behat\Behat\Tester\Exception\PendingException;
-use App\Behat\Service\Time;
-use App\Kernel;
 use League\Flysystem\Filesystem;
 use League\Flysystem\FilesystemInterface;
 use League\Flysystem\Memory\MemoryAdapter;

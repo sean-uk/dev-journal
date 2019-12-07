@@ -7,7 +7,7 @@ use App\Metadata\JournalMetadata;
 use App\Metadata\ScannerInterface;
 use Prophecy\Argument;
 use Prophecy\Prophecy\ObjectProphecy;
-use Symfony\Bundle\FrameworkBundle\Tests\TestCase;
+use PHPUnit\Framework\TestCase;
 use App\Filesystem;
 
 class FilesystemCompilerTest extends TestCase
@@ -18,7 +18,7 @@ class FilesystemCompilerTest extends TestCase
     /** @var ObjectProphecy $scanner_prophecy */
     private $scanner_prophecy;
 
-    public function setUp()
+    public function setUp() : void
     {
         // set up an object prophecy for the mock file source
         $this->file_source_prophecy = $this->prophesize(Filesystem\SourceInterface::class);
