@@ -4,30 +4,29 @@ namespace App\Behat;
 
 require_once __DIR__ .'/../../vendor/autoload.php';
 
-use App\Behat\Service\Time;
+use App\Command\CompileAnnotationsCommand;
 use App\Entity\JournalEntry;
-use App\Kernel;
+use App\Filesystem\FlysystemSource;
 use App\Repository\AnnotationRepositoryInterface;
+use App\Repository\FilesystemAnnotationRepository;
+use App\Service\TimeSource;
 use Behat\Behat\Context\Context;
 use Behat\Gherkin\Node\PyStringNode;
 use League\Flysystem\Filesystem;
 use League\Flysystem\FilesystemInterface;
 use League\Flysystem\Memory\MemoryAdapter;
 use PHPUnit\Framework\Assert;
-use Symfony\Bundle\FrameworkBundle\Console\Application;
-use Symfony\Component\Console\Command\Command;
+use Prophecy\Prophecy\ObjectProphecy;
+use Prophecy\Prophet;
 use Symfony\Component\Console\Tester\CommandTester;
+use App\Filesystem\SourceInterface;
 
 /**
  * Defines application features from the specific context.
- * @todo have the symfony var/cache dumped between runs?
  */
 class FeatureContext implements Context
 {
-    /** @var Kernel $app */
-    private $kernel;
-
-    /** @var Time */
+    /** @var ObjectProphecy $time */
     private $time;
 
     /** @var FilesystemInterface */
@@ -39,6 +38,9 @@ class FeatureContext implements Context
     /** @var AnnotationRepositoryInterface $annotation_repository */
     private $annotation_repository;
 
+    /** @var SourceInterface $file_source */
+    private $file_source;
+
     /**
      * Initializes context.
      *
@@ -48,19 +50,16 @@ class FeatureContext implements Context
      */
     public function __construct()
     {
-        // bootstrap an app kernel so    it can actually be used to handle requests and inspect output, etc.
-        $this->kernel = $this->bootstrapKernel();
-        $container = $this->kernel->getContainer();
-
-        // replace the DI container's time service with a riggable mock
-        $this->time = new Time();
-        $container->set('time', $this->time);
-
-        // setup the mock filesystem
+        // setup the file source using an in-memory filesystem
         $this->filesystem = $this->bootstrapMemoryFilesystem();
+        $this->file_source = new FlysystemSource($this->filesystem);
 
-        // set up the mock annotation repository
-        $this->annotation_repository =
+        // create an annotation repository;
+        $this->annotation_repository = new FilesystemAnnotationRepository($this->file_source);
+
+        // create a stub time source so the time can be changed as needed
+        $prophet = new Prophet();
+        $this->time = $prophet->prophesize(TimeSource::class);
     }
 
     /**
@@ -68,8 +67,7 @@ class FeatureContext implements Context
      */
     public function theDateTimeIs($dateTimeString)
     {
-        $dateTime = new \DateTime($dateTimeString);
-        $this->time->set($dateTime);
+        $this->time->now()->willReturn($dateTimeString);
     }
 
     /**
@@ -112,11 +110,10 @@ EOT;
      */
     public function thereShouldBeAnAnnotationCompiledFromAtSaying($path, $dateTimeString, PyStringNode $annotationContent)
     {
-        $annotations = $this->annotation_repository->find($path, $dateTimeString);
-        Assert::assertCount(1, $annotations);
-
-        $anotation = reset($annotations);
-        Assert::assertEquals($annotationContent, $annotation->getContent());
+        // get all annotations and check for one with the text in question
+        $found = $this->annotation_repository->find($path);
+        Assert::assertCount(1, $found);
+        Assert::assertEquals($annotationContent, $found[0]->content());
     }
 
     /**
@@ -124,35 +121,15 @@ EOT;
      */
     private function runAnnotationCompileCommand(string $path) : string
     {
-        // set up the application so the command can be pulled from it
-        $application = new Application($this->kernel);
-
         // use a command tester to execute the command
-        /** @var Command $command */
-        $command = $application->find('app:journal:compile');
+        $command = new CompileAnnotationsCommand($this->annotation_repository, 'thingy');
         $commandTester = new CommandTester($command);
         $commandTester->execute([
-            'command' => $command->getName(),
             'path' => $path
         ]);
 
         // return the command output for later assertations
         return $commandTester->getDisplay();
-    }
-
-    /**
-     * Get an app kernel bootstrapped into a test environment.
-     *
-     * This is based on what's in symfony's own app/public/index.php
-     * And also what they do in \Symfony\Bundle\FrameworkBundle\Test\KernelTestCase::bootKernel
-     *
-     * @return \App\Kernel
-     */
-    private function bootstrapKernel() : Kernel
-    {
-        $kernel = new Kernel('test', false);
-        $kernel->boot();
-        return $kernel;
     }
 
     /**

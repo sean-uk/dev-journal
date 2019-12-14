@@ -13,9 +13,16 @@ use App\Entity\JournalEntry;
 interface AnnotationRepositoryInterface
 {
     /**
-     * @param string $path
-     * @param \DateTime $date
+     * Find all annotations available
+     *
      * @return JournalEntry[]
      */
-    public function find(string $path, \DateTime $date) : array;
+    public function find() : array;
+
+    /**
+     * Record an annotation under a given filesystem path
+     * @param string $path
+     * @param JournalEntry $journalEntry
+     */
+    public function record(string $path, JournalEntry $journalEntry) : void;
 }

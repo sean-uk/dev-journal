@@ -8,7 +8,7 @@ use App\Filesystem\FileInfoInterface;
 /**
  * Interface ScannerInterface
  *
- * Something that can process and extract journal entries from a file
+ * Something that can process and extract journal entries from a file's content
  *
  * @package App\Scanner
  */

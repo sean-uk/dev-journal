@@ -2,11 +2,11 @@
 
 namespace App\Command;
 
+use App\Repository\AnnotationRepositoryInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use App\Metadata\JournalMetadata;
 
 /**
  * Class CompileAnnotationsCommand
@@ -19,6 +19,21 @@ class CompileAnnotationsCommand extends Command
 {
     protected static $defaultName = 'app:journal:compile';
 
+    /** @var AnnotationRepositoryInterface $annotation_repository */
+    private $annotation_repository;
+
+    /**
+     * CompileAnnotationsCommand constructor.
+     *
+     * @param AnnotationRepositoryInterface $annotationRepository
+     * @param string|null $name
+     */
+    public function __construct(AnnotationRepositoryInterface $annotationRepository, string $name = null)
+    {
+        parent::__construct($name);
+        $this->annotation_repository = $annotationRepository;
+    }
+
     protected function configure()
     {
         $this->addArgument('path', InputArgument::REQUIRED, 'The filesystem path to compile annotations from');
@@ -26,6 +41,6 @@ class CompileAnnotationsCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $output->writeln('Hello World!');
+
     }
 }

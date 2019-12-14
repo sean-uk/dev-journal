@@ -23,7 +23,7 @@ class FilesystemCompilerTest extends TestCase
         // set up an object prophecy for the mock file source
         $this->file_source_prophecy = $this->prophesize(Filesystem\SourceInterface::class);
 
-        // set up an object prophect for the mock annotation scanner
+        // set up an object prophecy for the mock annotation scanner
         $this->scanner_prophecy = $this->prophesize(ScannerInterface::class);
     }
 

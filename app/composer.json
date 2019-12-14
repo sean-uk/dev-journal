@@ -3,7 +3,8 @@
 	"license" : "proprietary",
 	"require" : {
 		"php": "^7.2",
-		"symfony/console": "^4.0"
+		"symfony/console": "^4.4",
+		"nesbot/carbon": "^2.27"
 	},
 	"autoload" : {
 		"psr-4" : {

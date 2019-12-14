@@ -4,5 +4,5 @@ namespace App\Service;
 
 interface TimeSource
 {
-    public function now() : \DateTime;
+    public function now() : \DateTimeInterface;
 }

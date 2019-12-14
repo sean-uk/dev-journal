@@ -9,20 +9,21 @@ namespace App\Filesystem;
  * A source of files to be processed for annotations
  *
  * @package App\Filesystem
+ * @todo files could in theory be enormous. use streams/generators?
  */
 interface SourceInterface
 {
     /**
-     * List all file paths under the source
+     * List file paths under the source
      *
+     * @param string|null $filePath
      * @return FileInfoInterface[]
      */
-    public function files() : array;
+    public function files(?string $path = null) : array;
 
     /**
      * @param string $path
      * @return string
-     * @throws \RuntimeException
      */
     public function content(string $path) : string;
 }
