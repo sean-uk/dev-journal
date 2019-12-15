@@ -29,8 +29,8 @@ class FilesystemAnnotationRepositoryTest extends TestCase
     public function test_find() : void
     {
         // the annotations will need to be compiled from the file source
-        $journalMetadata1 = $this->prophesize(Metadata\JournalMetadata::class);
-        $journalMetadata2 = $this->prophesize(Metadata\JournalMetadata::class);
+        $journalMetadata1 = $this->prophesize(Metadata\Comment::class);
+        $journalMetadata2 = $this->prophesize(Metadata\Comment::class);
         $this->compiler_prophecy
             ->compile(Argument::any())
             ->willReturn([

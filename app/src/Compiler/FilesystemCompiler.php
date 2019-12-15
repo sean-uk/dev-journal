@@ -3,13 +3,13 @@
 namespace App\Compiler;
 
 use App\Filesystem\SourceInterface;
-use App\Metadata\JournalMetadata;
+use App\Metadata\Comment;
 use App\Metadata\ScannerInterface;
 
 /**
  * Class FilesystemCompiler
  *
- * This class scans all the files in a filesystem under a given path and copies/extracts any journal entries it finds
+ * This class scans all the files in a filesystem under a given path and copies/extracts any comments it finds
  *
  * @package App\Compiler
  */
@@ -29,10 +29,10 @@ class FilesystemCompiler
     }
 
     /**
-     * Extract all journal metadata from a given file source
+     * Extract all comments from a given file source
      *
      * @param SourceInterface $source a file source
-     * @return JournalMetadata[] journal entry metadata extracted from the files
+     * @return Comment[] comments extracted from the files
      */
     public function compile(SourceInterface $source) : array
     {
@@ -44,7 +44,7 @@ class FilesystemCompiler
         foreach ($files as $file) {
 
             // get journal metadata in content
-            $fileJournals = $this->scanner->journalEntries($file);
+            $fileJournals = $this->scanner->comments($file);
             foreach ($fileJournals as $fileJournal) {
                 $journals[] = $fileJournal;
             }

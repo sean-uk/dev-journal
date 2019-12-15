@@ -5,8 +5,10 @@ namespace App\Behat;
 require_once __DIR__ .'/../../vendor/autoload.php';
 
 use App\Command\CompileAnnotationsCommand;
+use App\Compiler\FilesystemCompiler;
 use App\Entity\JournalEntry;
 use App\Filesystem\FlysystemSource;
+use App\Metadata\Php;
 use App\Repository\AnnotationRepositoryInterface;
 use App\Repository\FilesystemAnnotationRepository;
 use App\Service\TimeSource;
@@ -15,6 +17,10 @@ use Behat\Gherkin\Node\PyStringNode;
 use League\Flysystem\Filesystem;
 use League\Flysystem\FilesystemInterface;
 use League\Flysystem\Memory\MemoryAdapter;
+use PhpParser\NodeFinder;
+use PhpParser\ParserFactory;
+use PhpParser\PrettyPrinter\Standard;
+use PhpParser\PrettyPrinterAbstract;
 use PHPUnit\Framework\Assert;
 use Prophecy\Prophecy\ObjectProphecy;
 use Prophecy\Prophet;
@@ -41,6 +47,9 @@ class FeatureContext implements Context
     /** @var SourceInterface $file_source */
     private $file_source;
 
+    /** @var FilesystemCompiler $compiler */
+    private $compiler;
+
     /**
      * Initializes context.
      *
@@ -54,8 +63,18 @@ class FeatureContext implements Context
         $this->filesystem = $this->bootstrapMemoryFilesystem();
         $this->file_source = new FlysystemSource($this->filesystem);
 
+        // create a filesystem annotation compiler
+        $parserFactory = new ParserFactory();
+        $scanner = new Php\AnnotationScanner(
+            $this->file_source,
+            $parserFactory->create(ParserFactory::PREFER_PHP7),
+            new NodeFinder(),
+            new Standard()
+        );
+        $this->compiler = new FilesystemCompiler($scanner);
+
         // create an annotation repository;
-        $this->annotation_repository = new FilesystemAnnotationRepository($this->file_source);
+        $this->annotation_repository = new FilesystemAnnotationRepository($this->file_source, $this->compiler);
 
         // create a stub time source so the time can be changed as needed
         $prophet = new Prophet();

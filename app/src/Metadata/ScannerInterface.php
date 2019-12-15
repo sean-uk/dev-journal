@@ -8,7 +8,7 @@ use App\Filesystem\FileInfoInterface;
 /**
  * Interface ScannerInterface
  *
- * Something that can process and extract journal entries from a file's content
+ * Something that can process and extract comments from a file's content
  *
  * @package App\Scanner
  */
@@ -16,7 +16,7 @@ interface ScannerInterface
 {
     /**
      * @param FileInfoInterface $file
-     * @return JournalMetadata[]
+     * @return Comment[]
      */
-    public function journalEntries(FileInfoInterface $fileInfo) : array;
+    public function comments(FileInfoInterface $fileInfo) : array;
 }

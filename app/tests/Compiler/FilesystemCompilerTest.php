@@ -3,12 +3,12 @@
 namespace App\Tests\Compiler;
 
 use App\Compiler\FilesystemCompiler;
-use App\Metadata\JournalMetadata;
+use App\Filesystem;
+use App\Metadata\Comment;
 use App\Metadata\ScannerInterface;
+use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Prophecy\Prophecy\ObjectProphecy;
-use PHPUnit\Framework\TestCase;
-use App\Filesystem;
 
 class FilesystemCompilerTest extends TestCase
 {
@@ -54,14 +54,14 @@ class FilesystemCompilerTest extends TestCase
             ->content(Argument::any())
             ->willReturn('');
 
-        $journal1 = $this->prophesize(JournalMetadata::class)->reveal();
-        $journal2 = $this->prophesize(JournalMetadata::class)->reveal();
-        $journal3 = $this->prophesize(JournalMetadata::class)->reveal();
+        $comment1 = $this->prophesize(Comment::class)->reveal();
+        $comment2 = $this->prophesize(Comment::class)->reveal();
+        $comment3 = $this->prophesize(Comment::class)->reveal();
 
-        // define _some_ of those paths to have annotations in them
-        $this->scanner_prophecy->journalEntries($file1)->willReturn([$journal1]);
-        $this->scanner_prophecy->journalEntries($file2)->willReturn([]);
-        $this->scanner_prophecy->journalEntries($file3)->willReturn([$journal2, $journal3]);
+        // define _some_ of those paths to have comments in them
+        $this->scanner_prophecy->comments($file1)->willReturn([$comment1]);
+        $this->scanner_prophecy->comments($file2)->willReturn([]);
+        $this->scanner_prophecy->comments($file3)->willReturn([$comment2, $comment3]);
 
         // do the compilation
         $compiler = new FilesystemCompiler($this->scanner());
@@ -69,9 +69,9 @@ class FilesystemCompilerTest extends TestCase
 
         // check the journal storage for items for each annotation in each file
         $this->assertCount(3, $journals);
-        $this->assertContains($journal1, $journals);
-        $this->assertContains($journal2, $journals);
-        $this->assertContains($journal3, $journals);
+        $this->assertContains($comment1, $journals);
+        $this->assertContains($comment2, $journals);
+        $this->assertContains($comment3, $journals);
     }
 
     /**
