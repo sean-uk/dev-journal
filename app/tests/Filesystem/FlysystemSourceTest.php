@@ -127,4 +127,64 @@ class FlysystemSourceTest extends TestCase
         $this->expectException(\Exception::class);
         $adapter->files('/dir/');
     }
+
+    /**
+     * Test geting the contents of a file
+     */
+    public function test_content() : void
+    {
+        // allow the mock flysytem to be checked for metadata for a particular path and say it's a file
+        $this->flysystem_prophecy
+            ->getMetadata('/path/to/some/file')
+            ->willReturn(
+                ['type' => 'file', 'path' => '/path/to/some/file'],
+            );
+
+        // allow the mock flysystem to be checked for the content of a particular path
+        $this->flysystem_prophecy
+            ->read('/path/to/some/file')
+            ->willReturn('hello-world!');
+
+        // create the source adapter
+        $adapter = new FlysystemSource($this->flysystem_prophecy->reveal());
+
+        // try to get the content. the result should be whatever flysystem returned
+        $result = $adapter->content('/path/to/some/file');
+        $this->assertEquals('hello-world!', $result);
+    }
+
+    /**
+     * The path is nonexistent, malformed, etc
+     */
+    public function test_content_with_invalid_path() : void
+    {
+        // allow the mock flysytem to be checked for metadata for a particular path and return nothing
+        $this->flysystem_prophecy
+            ->getMetadata('/path/to/some/file')
+            ->willReturn(false);
+
+        // create the source adapter
+        $adapter = new FlysystemSource($this->flysystem_prophecy->reveal());
+
+        // try to get the content. the result should be an exception
+        $this->expectException(\Exception::class);
+        $adapter->content('/path/to/some/file');
+    }
+
+    public function test_content_with_folder_path() : void
+    {
+        // allow the mock flysytem to be checked for metadata for a particular path and say it's a directory
+        $this->flysystem_prophecy
+            ->getMetadata('/path/to/some/file')
+            ->willReturn(
+                ['type' => 'dir', 'path' => '/path/to/some/file']
+            );
+
+        // create the source adapter
+        $adapter = new FlysystemSource($this->flysystem_prophecy->reveal());
+
+        // try to get the content. the result should be an exception
+        $this->expectException(\Exception::class);
+        $adapter->content('/path/to/some/file');
+    }
 }

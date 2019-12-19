@@ -8,6 +8,7 @@ use App\Command\CompileAnnotationsCommand;
 use App\Compiler\FilesystemCompiler;
 use App\Entity\JournalEntry;
 use App\Filesystem\FlysystemSource;
+use App\JournalAnnotation\PhpCommentParser;
 use App\Metadata\Php;
 use App\Repository\AnnotationRepositoryInterface;
 use App\Repository\FilesystemAnnotationRepository;
@@ -60,18 +61,19 @@ class FeatureContext implements Context
     public function __construct()
     {
         // setup the file source using an in-memory filesystem
-        $this->filesystem = $this->bootstrapMemoryFilesystem();
+        $filesystemAdaptor = new MemoryAdapter();
+        $this->filesystem = new Filesystem($filesystemAdaptor);
         $this->file_source = new FlysystemSource($this->filesystem);
 
         // create a filesystem annotation compiler
-        $parserFactory = new ParserFactory();
+        $phpParserFactory = new ParserFactory();
         $scanner = new Php\AnnotationScanner(
             $this->file_source,
-            $parserFactory->create(ParserFactory::PREFER_PHP7),
+            $phpParserFactory->create(ParserFactory::PREFER_PHP7),
             new NodeFinder(),
             new Standard()
         );
-        $this->compiler = new FilesystemCompiler($scanner);
+        $this->compiler = new FilesystemCompiler($scanner, new PhpCommentParser());
 
         // create an annotation repository;
         $this->annotation_repository = new FilesystemAnnotationRepository($this->file_source, $this->compiler);
@@ -129,10 +131,14 @@ EOT;
      */
     public function thereShouldBeAnAnnotationCompiledFromAtSaying($path, $dateTimeString, PyStringNode $annotationContent)
     {
+        var_dump($path);
+        var_dump($this->filesystem->listContents('', true));
+        var_dump($this->filesystem->read($path));
+
         // get all annotations and check for one with the text in question
         $found = $this->annotation_repository->find($path);
         Assert::assertCount(1, $found);
-        Assert::assertEquals($annotationContent, $found[0]->content());
+        Assert::assertEquals($annotationContent, $found[0]->body());
     }
 
     /**
@@ -141,26 +147,13 @@ EOT;
     private function runAnnotationCompileCommand(string $path) : string
     {
         // use a command tester to execute the command
-        $command = new CompileAnnotationsCommand($this->annotation_repository, 'thingy');
+        $command = new CompileAnnotationsCommand($this->file_source, $this->compiler, $this->annotation_repository);
         $commandTester = new CommandTester($command);
         $commandTester->execute([
             'path' => $path
         ]);
 
-        // return the command output for later assertations
+        // return the command output for later assertions
         return $commandTester->getDisplay();
-    }
-
-    /**
-     * This creates a new in-memory mock filesystem
-     *
-     * @see https://flysystem.thephpleague.com/docs/adapter/memory/
-     * @return FilesystemInterface
-     */
-    private function bootstrapMemoryFilesystem() : FilesystemInterface
-    {
-        $adapter = new MemoryAdapter();
-        $filesystem = $this->filesystem = new Filesystem($adapter);
-        return $filesystem;
     }
 }

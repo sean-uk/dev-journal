@@ -36,7 +36,7 @@ class FilesystemAnnotationRepository implements AnnotationRepositoryInterface
 
     public function find(): array
     {
-        // just use the filesystem compiler to re-scan all the entries
+        // just use the filesystem compiler to re-scan all the entries from the whole file source
         $entries = $this->compiler->compile($this->fileSource);
         return $entries;
     }
