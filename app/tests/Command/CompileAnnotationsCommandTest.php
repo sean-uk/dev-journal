@@ -11,6 +11,7 @@ use App\Repository\AnnotationRepositoryInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Tester\CommandTester;
 
 class CompileAnnotationsCommandTest extends TestCase
 {
@@ -61,18 +62,12 @@ class CompileAnnotationsCommandTest extends TestCase
             ->compile($this->file_source_prophecy, '/path/to/files')
             ->willReturn([$entry1->reveal(), $entry2->reveal()]);
 
-        // setup the mock command input and output interfaces and have the input give the path that files have been set up in
-        /** @var InputInterface $input */
-        /** @var OutputInterface $output */
-        $input = $this->prophesize(InputInterface::class);
-        $output = $this->prophesize(OutputInterface::class);
-        $input
-            ->getArgument('path')
-            ->willReturn('/path/to/files');
-
-        // create command, execute
+        // create command, execute (using a symfony command tester to simplify the I/O process)
         $command = new CompileAnnotationsCommand($this->file_source_prophecy->reveal(), $this->compiler_prophecy->reveal(), $this->annotation_repository_prophecy->reveal());
-        $command->run($input->reveal(), $output->reveal());
+        $commandTester = new CommandTester($command);
+        $commandTester->execute([
+            'path' => '/path/to/files'
+        ]);
 
         // the journal entries found should be written to the repository
         $this->annotation_repository_prophecy

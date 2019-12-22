@@ -8,6 +8,7 @@ use App\Command\CompileAnnotationsCommand;
 use App\Compiler\FilesystemCompiler;
 use App\Entity\JournalEntry;
 use App\Filesystem\FlysystemSource;
+use App\Filesystem\SourceInterface;
 use App\JournalAnnotation\PhpCommentParser;
 use App\Metadata\Php;
 use App\Repository\AnnotationRepositoryInterface;
@@ -18,15 +19,11 @@ use Behat\Gherkin\Node\PyStringNode;
 use League\Flysystem\Filesystem;
 use League\Flysystem\FilesystemInterface;
 use League\Flysystem\Memory\MemoryAdapter;
-use PhpParser\NodeFinder;
 use PhpParser\ParserFactory;
-use PhpParser\PrettyPrinter\Standard;
-use PhpParser\PrettyPrinterAbstract;
 use PHPUnit\Framework\Assert;
 use Prophecy\Prophecy\ObjectProphecy;
 use Prophecy\Prophet;
 use Symfony\Component\Console\Tester\CommandTester;
-use App\Filesystem\SourceInterface;
 
 /**
  * Defines application features from the specific context.
@@ -70,8 +67,7 @@ class FeatureContext implements Context
         $scanner = new Php\AnnotationScanner(
             $this->file_source,
             $phpParserFactory->create(ParserFactory::PREFER_PHP7),
-            new NodeFinder(),
-            new Standard()
+            new Php\CommentVisitor()
         );
         $this->compiler = new FilesystemCompiler($scanner, new PhpCommentParser());
 
@@ -108,6 +104,7 @@ class FeatureContext implements Context
         // formulate the content into an actual journal entry annotation
         $annotationClass = JournalEntry::class;
         $content = <<<EOT
+<?php
 /**
  * $annotationClass(
  *     message = "$annotationContent"
@@ -131,10 +128,6 @@ EOT;
      */
     public function thereShouldBeAnAnnotationCompiledFromAtSaying($path, $dateTimeString, PyStringNode $annotationContent)
     {
-        var_dump($path);
-        var_dump($this->filesystem->listContents('', true));
-        var_dump($this->filesystem->read($path));
-
         // get all annotations and check for one with the text in question
         $found = $this->annotation_repository->find($path);
         Assert::assertCount(1, $found);

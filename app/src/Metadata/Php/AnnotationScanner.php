@@ -2,11 +2,12 @@
 
 namespace App\Metadata\Php;
 
-use App\Filesystem\FileInfoInterface;
 use App\Filesystem;
+use App\Filesystem\FileInfoInterface;
 use App\Metadata\Comment;
 use App\Metadata\ScannerInterface;
 use PhpParser;
+use PhpParser\NodeTraverser;
 
 /**
  * Class PhpAnnotationScanner
@@ -23,28 +24,23 @@ class AnnotationScanner implements ScannerInterface
     /** @var PhpParser\Parser $parser */
     private $parser;
 
-    private $finder;
-
-    /** @var PhpParser\PrettyPrinterAbstract $printer */
-    private $printer;
+    /** @var CommentVisitor $comment_visitor */
+    private $comment_visitor;
 
     /**
      * PhpAnnotationScanner constructor.
      * @param Filesystem\SourceInterface $filesystem
      * @param PhpParser\Parser $phpParser
-     * @param PhpParser\NodeFinder $nodeFinder
-     * @param PhpParser\PrettyPrinterAbstract $prettyPrinter
+     * @param CommentVisitor $commentVisitor
      */
     public function __construct(
         Filesystem\SourceInterface $filesystem,
         PhpParser\Parser $phpParser,
-        PhpParser\NodeFinder $nodeFinder,
-        PhpParser\PrettyPrinterAbstract $prettyPrinter
+        CommentVisitor $commentVisitor
     ) {
         $this->filesystem = $filesystem;
+        $this->comment_visitor = $commentVisitor;
         $this->parser = $phpParser;
-        $this->finder = $nodeFinder;
-        $this->printer = $prettyPrinter;
     }
 
     /**
@@ -59,15 +55,19 @@ class AnnotationScanner implements ScannerInterface
         $stmts = $this->parser->parse($contents);
 
         // find all comments
-        $commentStmts = $this->finder->findInstanceOf($stmts, PhpParser\Comment::class);
+        // (need a custom visitor \PhpParser\NodeFinder::findInstanceOf won't work. Comments aren't Nodes!)
+        $traverser = new NodeTraverser();
+        $traverser->addVisitor($this->comment_visitor);
+        $traverser->traverse($stmts);
+        $comments = $this->comment_visitor->comments();
 
         // create comment entities with the contents of each node found
-        $comments = [];
-        foreach ($commentStmts as $commentStmt) {
-            $commentText = $this->printer->prettyPrint([$commentStmt]);
-            $comments[] = new Comment($commentText);
+        $commentsEntities = [];
+        foreach ($comments as $comment) {
+            $commentText = $comment->getText();
+            $commentsEntities[] = new Comment($commentText);
         }
 
-        return $comments;
+        return $commentsEntities;
     }
 }

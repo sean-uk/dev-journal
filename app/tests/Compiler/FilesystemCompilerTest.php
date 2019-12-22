@@ -35,7 +35,7 @@ class FilesystemCompilerTest extends TestCase
         // mock up a file source to be compiled from
         $fileSource = $this->prophesize(Filesystem\SourceInterface::class);
         $fileSource
-            ->files()
+            ->files('/path/to/wherever')
             ->willReturn([$file1, $file2]);
 
         // define _some_ of those paths to have comments in them
@@ -71,7 +71,7 @@ class FilesystemCompilerTest extends TestCase
 
         // do the compilation
         $compiler = new FilesystemCompiler($this->scanner_prophecy->reveal(), $this->annotation_parser_prophecy->reveal());
-        $journals = $compiler->compile($fileSource->reveal());
+        $journals = $compiler->compile($fileSource->reveal(), '/path/to/wherever');
 
         // check the journal storage for items for each annotation in each file
         $this->assertCount(3, $journals);

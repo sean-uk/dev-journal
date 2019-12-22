@@ -33,19 +33,21 @@ class FlysystemSource implements SourceInterface
      * @throws Flysystem\FileNotFoundException
      * @throws FilesystemException
      */
-    public function files(?string $path = 'null'): array
+    public function files(?string $path = null): array
     {
         // check the type of what the path points to.
-        // @todo looks like this can throw an exception if the path doesn't exist!
-        $pathMetadata = $this->filesystem->getMetadata($path);
+        $pathMetadata = null;
+        if ($path) {
+            $pathMetadata = $this->filesystem->getMetadata($path);
+        }
 
         // if nothing was found, throw an exception. returning an empty array might be misleading.
-        if (!$pathMetadata) {
+        if ($path && !$pathMetadata) {
             throw new FilesystemException();
         }
 
         // if it's a file, just return the metadata for that
-        if ($pathMetadata['type'] === 'file') {
+        if ($pathMetadata && $pathMetadata['type'] === 'file') {
             return [new FileInfo($pathMetadata['path'])];
         }
 
